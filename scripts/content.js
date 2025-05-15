@@ -13,10 +13,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     const buyerEmailElement = document.querySelector('.buyer-email-display');
     const email = buyerEmailElement ? buyerEmailElement.textContent.trim() : null;
 
+    const buyerLocationElement = document.querySelectorAll('.location')[1];
+    const location = buyerLocationElement ? buyerLocationElement.textContent.trim() : null;
+
     sendResponse({ 
         buyerName: name, 
         buyerPhone: phone,
-        buyerEmail: email
+        buyerEmail: email,
+        buyerLocation: location
     });
   }
   return true;

@@ -1,17 +1,18 @@
 {
   "manifest_version": 3,
-  "name": "Buyer Name Checker",
+  "name": "Bark Specter",
   "version": "1.0",
-  "description": "Gets buyer name from a website and checks via API.",
+  "description": "Match bark leads with CRM records",
   "permissions": ["activeTab", "scripting"],
   "host_permissions": ["<all_urls>"],
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "popup/popup.html",
+    "default_icon": "images/logo.png"
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"]
+      "js": ["scripts/content.js"]
     }
   ]
 }
