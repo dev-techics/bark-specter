@@ -10,8 +10,8 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     const matterHeading = document.getElementById("matterHeading");
     const memberHeading = document.getElementById("memberHeading");
     const resultSummery = document.getElementById("resultSummery");
+    const saveClient = document.getElementById("saveClient");
 
-    // const resultsContainer = document.getElementById("results");
 
     if (!response || !response.buyerName) {
       nameElement.textContent = "No buyer name found.";
@@ -56,18 +56,25 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          type: 'check',
           name: buyerName,
           phone: buyerPhone,
           email: buyerEmail
         })
       });
 
+
       if (!apiResponse.ok) {
         throw new Error(`HTTP error! status: ${apiResponse.status}`);
       }
 
+      // response data from api
       const result = await apiResponse.json();
+      console.log(result);
 
+      console.log(result);
+
+      // check if data is empty
       if (result?.data?.length > 0) {
         memberHeading.textContent = "Peoples";
         matterHeading.textContent = result.data[0]?.cases?.length > 0 ? "Matters" : "No matter found for this leads.";
@@ -78,8 +85,9 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       let members = 0;
 
       // handle the data
-      result.data.forEach((data) => {
+      result?.data?.forEach((data) => {
         data.cases.forEach((caseData) => {
+          // loading matter data
           mattersContainer.insertAdjacentHTML('beforeend', `
             <div class="matter" data-id="${caseData.caseid}">
               <img class="matter_icon" src="../images/matter-icon.svg" alt="matter icon">
@@ -96,6 +104,7 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
           matters++;
         });
 
+        // loading member data
         membersContainer.insertAdjacentHTML('beforeend', `
           <div class="member" data-id="125478">
             <img class="member_avatar" src="../images/avatar.jpg" alt="matter icon">
@@ -130,6 +139,15 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             chrome.tabs.create({ url: `${SERVER_URL}/add_edit_case.php?caseid=${caseId}` });
         });
       });
+
+
+      // click listener
+      saveClient.addEventListener("click", (e) => {
+
+
+        console.log(response.activityLog);
+      });
+      
 
     } catch (error) {
       console.error("Fetch error:", error);

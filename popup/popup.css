@@ -73,10 +73,7 @@ header{
 ------------------------------------- */
 .client_section{
     margin-top: 3rem;
-    display: flex;
-    align-items: center;
     padding: 0 2rem;
-    gap: 1.5rem;
     background-image: repeating-linear-gradient(
         to right,
         #cfcfcf 0px,
@@ -88,11 +85,19 @@ header{
     background-repeat: repeat-x;
     background-size: 100% 1px;
     padding-bottom: 2.3rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+
+.client_details{
+    flex-grow: 1;
 }
 
 .client_avatar{
-    height: 40px;
-    width: 40px;
+    height: 4rem;
+    width: 4rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -109,6 +114,20 @@ header{
     color: #0e0e0e;
 }
 
+.save_client{
+    background-color: #26848E;
+    padding: .5rem 1rem;
+    border-radius: .5rem;
+    border: 0;
+    color: white;
+    justify-self: flex-end;
+    transition: .3s ease;
+}
+
+.save_client:hover{
+    background-color: #1f6b7a;
+    cursor: pointer;
+}
 
 
 /* ------------------------------------
