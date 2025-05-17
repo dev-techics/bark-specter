@@ -39,7 +39,7 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     }
 
     const buyerName = response.buyerName;
-    const buyerPhone = response.buyerPhone;
+    const buyerPhone = response.buyerPhone.split(" ").join("");
     const buyerEmail = response.buyerEmail;
     const buyerLocation = response.buyerLocation;
     const activityLog = response.activityLog;
@@ -49,10 +49,9 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     nameElement.textContent = buyerName;
     // phoneElement.textContent = buyerPhone;
     // emailElement.textContent = buyerEmail;
-    locationElement.textContent = buyerLocation;
+    locationElement.textContent = buyerEmail;
     avatarElement.textContent = buyerName.charAt(0).toUpperCase();
-
-
+    
 
     // create new matter
     saveClient.addEventListener("click", async (e) => {
@@ -80,7 +79,6 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         }
       }
     });
-
     
 
     try {
@@ -107,16 +105,10 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         // change headings
         memberHeading.textContent = "Peoples";
         matterHeading.textContent = result.data[0]?.cases?.length > 0 ? "Matters" : "No matter found for this leads.";
-        if(result.strictMatch === true){
-          saveClient.textContent = "Saved";
-          saveClient.disabled = true;
-        }
-
 
         // count and render result
         let matters = 0;
         let members = 0;
-        
 
         // handle the data
         result?.data?.forEach((data) => {
@@ -157,10 +149,36 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             </div>
           `);
 
+          // checking member
+          // console.log(data.member);
+          
+          if( // abject match
+            data.member.email == buyerEmail && 
+            data.member.phone == buyerPhone || 
+            data.member.mobile == buyerPhone){
+              saveClient.style.display = "block";
+              saveClient.textContent = "Saved";
+              saveClient.disabled = true;
+          }else {
+
+            // pattern match
+            const isMatch = isEmailMatch(buyerEmail, data.member.email);
+            const isPhonePatternMatch = isPhoneMatch(buyerPhone, data.member.phone || data.member.mobile);
+            const isNameMatch = data.member.fname == buyerName;
+            if(isMatch || isPhonePatternMatch || isNameMatch){
+              locationElement.textContent = data.member.email;
+              saveClient.style.display = "block";
+              saveClient.textContent = "Saved";
+              saveClient.disabled = true;
+            }
+          }
+
           // member counter
           members++;
         });
 
+
+        console.log("Member : 0");
 
         // result summery
         resultSummery.textContent = `We found ${members} members and ${matters} matters for this leads.`;
@@ -174,6 +192,9 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
           });
         });
       }
+
+
+
 
 
       // update matter activity

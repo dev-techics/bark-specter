@@ -126,6 +126,7 @@ header {
   color: white;
   justify-self: flex-end;
   transition: 0.3s ease;
+  display: none;
 }
 
 .save_client:hover {

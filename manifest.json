@@ -3,7 +3,7 @@
   "name": "Bark Specter",
   "version": "1.0",
   "description": "Match bark leads with CRM records",
-  "permissions": ["activeTab", "scripting"],
+  "permissions": ["activeTab", "scripting", "notifications"],
   "host_permissions": ["<all_urls>"],
   "action": {
     "default_popup": "popup/popup.html",
