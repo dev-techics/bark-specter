@@ -18,6 +18,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     const buyerLocationElement = document.querySelectorAll('.location')[1];
     const location = buyerLocationElement ? buyerLocationElement.textContent.trim() : null;
 
+    // get the buyer service from the page
+    const buyerServiceElement = document.querySelectorAll('.project-details-answer')[1];
+    const service = buyerServiceElement ? buyerServiceElement.textContent.trim() : null;
+
     // get the buyer question & answer from the page
     const container = document.querySelector('.project-questions-answers');
     const questions = container.querySelectorAll('.project-details-question');
@@ -27,7 +31,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     questions.forEach((question, index) => {
       const qText = question.textContent.trim();
       const aText = answers[index]?.textContent.trim() || '';
-      finalOutput += `Question : ${qText}\nAnswer : ${aText}\n\n`;
+      finalOutput += `<b>Question : ${qText} </b>\n <p>Answer : ${aText}</p>`;
     });
 
 
@@ -50,6 +54,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         buyerPhone: phone,
         buyerEmail: email,
         buyerLocation: location,
+        buyerService: service,
         activityLog: finalOutput += requestQuotes,
     });
   }
