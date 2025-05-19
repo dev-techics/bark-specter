@@ -14,8 +14,8 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     
 
     // server information 
-    const SERVER_URL =  "https://cms.icslegal.com";
-    // const SERVER_URL =  "http://localhost/cms";
+    // const SERVER_URL =  "https://cms.icslegal.com";
+    const SERVER_URL =  "http://localhost/cms";
 
 
     if (!response || !response.buyerName) {
@@ -38,6 +38,7 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       return;
     }
 
+    // buyer information form website
     const buyerName = response.buyerName;
     const buyerPhone = response.buyerPhone.split(" ").join("");
     const buyerEmail = response.buyerEmail;
@@ -51,37 +52,27 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     // emailElement.textContent = buyerEmail;
     locationElement.textContent = buyerEmail;
     avatarElement.textContent = buyerName.charAt(0).toUpperCase();
-    
+
+
+    // show save button if email not masked
+    if(!buyerEmail.includes("*")){
+      saveClient.style.display = "block";
+    }
 
     // create new matter
-    saveClient.addEventListener("click", async (e) => {
-      const requestObject = {
+    saveClient.addEventListener('click', ()=>{
+      createMatter(SERVER_URL, saveClient, {
         name: buyerName,
         phone: buyerPhone,
         email: buyerEmail,
         service : buyerService,
         activityLog: activityLog,
-      }
-
-      // send request;
-      const apiResponse = await fetch(`${SERVER_URL}/bark-api-store.php`, {
-        headers: { "Content-Type": "application/json" },
-        method: "POST",
-        body: JSON.stringify(requestObject)
       });
-
-      // check if response is ok
-      if(apiResponse.ok){
-        const result = await apiResponse.json();
-        if (result?.status == "success") {
-          saveClient.textContent = "Saved";
-          saveClient.disabled = true;
-        }
-      }
-    });
+    })
     
 
     try {
+      // request on api end points
       const apiResponse = await fetch(`${SERVER_URL}/bark-api.php`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -100,100 +91,83 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 
       // response data from api
       const result = await apiResponse.json();
+      console.log(result);
+    
+
+
       if(result && result.status == "success"){
          
         // change headings
-        memberHeading.textContent = "Peoples";
-        matterHeading.textContent = result.data[0]?.cases?.length > 0 ? "Matters" : "No matter found for this leads.";
+        result.users.length > 0 && (memberHeading.textContent = "Peoples");
+        result.matters.length > 0 && (matterHeading.textContent = "Matters");
 
-        // count and render result
-        let matters = 0;
-        let members = 0;
-
-        // handle the data
-        result?.data?.forEach((data) => {
-          data.cases.forEach((caseData) => {
-            // loading matter data
-            mattersContainer.insertAdjacentHTML('beforeend', `
-              <div class="matter" data-id="${caseData.caseid}">
-                <img class="matter_icon" src="../images/matter-icon.svg" alt="matter icon">
-                <div class="matter_details">
-                  <h3 class="matter_title">${caseData.title || "Untitled Matter"}</h3>
-                  <small class="matter_desc text-secondary">
-                    ${caseData.details || "This matter has no description available."}
-                  </small>
-                </div>
-                <button title="Update Activity" class="update_activity" id="activityUpdate" data-id="${caseData.caseid}">Update</button>
-              </div>
-            `);
-
-            // matter counter
-            matters++;
-          });
-
-          // loading member data
+        // load users or members
+        result.users.forEach((user) => {
+          let percentage = getPercentage(user, buyerName, buyerPhone, buyerEmail);
           membersContainer.insertAdjacentHTML('beforeend', `
-            <div class="member" data-id="125478">
-              <img class="member_avatar" src="../images/avatar.jpg" alt="matter icon">
+            <div class="member" data-id="${user.id}">
+              <div class="progress ${percentage}">
+                <img class="member_avatar" src="../images/avatar.jpg" alt="matter icon">
+              </div>
               <div>
-                <h3 class="member_name">${data.member.fname + " " + data.member.lname}</h3>
+                <h3 class="member_name">${user.fname + " " + user.lname}</h3>
                 <small class="member_email text-secondary">
                   <img src="../images/icon-email.svg" alt="email icon" class="icon_small icon_email">
-                  ${data.member.email}
+                  ${user.email}
                 </small>&nbsp;
                 <small class="member_email text-secondary">
                   <img src="../images/icon-phone.svg" alt="email icon" class="icon_small icon_phone">
-                  ${data.member.mobile || data.member.phone}
+                  ${user.mobile || user.phone}
                 </small>
               </div>
             </div>
           `);
 
-          // checking member
-          // console.log(data.member);
-          
-          if( // abject match
-            data.member.email == buyerEmail && 
-            data.member.phone == buyerPhone || 
-            data.member.mobile == buyerPhone){
-              saveClient.style.display = "block";
-              saveClient.textContent = "Saved";
-              saveClient.disabled = true;
-          }else {
-
-            // pattern match
-            const isMatch = isEmailMatch(buyerEmail, data.member.email);
-            const isPhonePatternMatch = isPhoneMatch(buyerPhone, data.member.phone || data.member.mobile);
-            const isNameMatch = data.member.fname == buyerName;
-            if(isMatch || isPhonePatternMatch || isNameMatch){
-              locationElement.textContent = data.member.email;
-              saveClient.style.display = "block";
-              saveClient.textContent = "Saved";
-              saveClient.disabled = true;
-            }
+          // looks saves with text disabled.
+          if(user.email == buyerEmail){
+            saveClient.textContent = "Saved";
+            saveClient.disabled = true;
           }
 
-          // member counter
-          members++;
+          // change header email
+
         });
 
+        // load matters
+        result.matters.forEach((matter) => {
+          mattersContainer.insertAdjacentHTML('beforeend', `
+            <div class="matter" data-id="${matter.caseid}" data-client="${matter.fkclientid}" >
+              <img class="matter_icon" src="../images/matter-icon.svg" alt="matter icon">
+                <div class="matter_details">
+                  <h3 class="matter_title">${stripHtml(matter.title) || "Untitled Matter"}</h3>
+                  <small class="matter_desc text-secondary">
+                   ${stripHtml(matter.details) || "This matter has no description available."}
+                  </small>
+                </div>
+              <button title="Update Activity" class="update_activity" id="activityUpdate" data-id="${matter.caseid}">Update</button>
+            </div>
+          `);
+        });
 
-        console.log("Member : 0");
+        // count and render result
+        let matters = result.matters.length
+        let members = result.matters.length
 
-        // result summery
+        // update footer text
         resultSummery.textContent = `We found ${members} members and ${matters} matters for this leads.`;
 
-        // click listener
+        // click listener for matters
         document.querySelectorAll(".matter").forEach((button) => {
-            button.addEventListener("click", (e) => {
-              const caseId = e.currentTarget.dataset.id;
-              console.log(caseId);
-              chrome.tabs.create({ url: `${SERVER_URL}/add_edit_case.php?caseid=${caseId}` });
+          button.addEventListener("click", (e) => {
+            const caseId = e.currentTarget.getAttribute("data-id");
+            chrome.tabs.create({ url: `${SERVER_URL}/add_edit_case.php?caseid=${caseId}` });
           });
         });
+
+
+      } else {
+        console.log(result);
       }
-
-
 
 
 
@@ -230,6 +204,30 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         });
       })
 
+      // filter matter
+      const memberElements = document.querySelectorAll(".member");
+      memberElements.forEach((member) => {
+
+        // hide matter on click
+        member.addEventListener("click", (e) => {
+          // Remove 'selected' from all progress elements first (optional, for single selection)
+          document.querySelectorAll(".progress.selected").forEach(p => p.classList.remove("selected"));
+
+
+          const progress = e.currentTarget.querySelector(".progress");
+          if (progress) {progress.classList.add("selected");}
+
+          const memberId = e.currentTarget.getAttribute("data-id");
+          const selectedMatter = document.querySelectorAll('.matter');
+          selectedMatter.forEach((matter) => {
+            if (matter.getAttribute("data-client") === memberId) {
+              matter.classList.remove("hide");
+            } else {
+              matter.classList.add("hide");
+            }
+          });
+        });
+      });
     } catch (error) {
       console.log(error);
     }
