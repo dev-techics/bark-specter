@@ -50,7 +50,7 @@ function stripHtml(html) {
 // create new matter function
 async function createMatter(URL, button, data) {
   //send request;
-  const apiResponse = await fetch(`${URL}/bark-api-store.php`, {
+  const apiResponse = await fetch(`${URL}/extension-save-matter.php`, {
     headers: { "Content-Type": "application/json" },
     method: "POST",
     body: JSON.stringify(data),
@@ -59,6 +59,8 @@ async function createMatter(URL, button, data) {
   // check if response is ok
   if (apiResponse.ok) {
     const result = await apiResponse.json();
+    console.log(result);
+
     if (result?.status == "success") {
       button.textContent = "Saved";
       document.querySelectorAll(".button_group")[0].classList.add("disabled");
@@ -68,8 +70,8 @@ async function createMatter(URL, button, data) {
 
 async function updateMatterActivity(URL, button, data) {
   try {
-    // sending request to api
-    const apiResponse = await fetch(`${URL}/bark_api_store_activity.php`, {
+      // sending request to api
+      const apiResponse = await fetch(`${URL}/bark-save-activity.php`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),

@@ -57,6 +57,24 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         buyerService: service,
         activityLog: finalOutput += requestQuotes,
     });
+  }else if(request.action === "send-email"){
+    // send email template
+    const optionEmail = document.getElementById('seller-button-btn-send-template');
+    const optionSms = document.getElementById('seller-button-btn-send-sms');
+    if(optionEmail) optionEmail.click();
+    if(optionSms) optionSms.click();
+
+
+    setTimeout(() => {
+      const modals = document.querySelectorAll('.bark-modal.show')
+      modals.forEach(modal => {
+        const button = modal.querySelector('button.btn-primary');
+        button.click();
+        console.log(button);
+      });
+    }, 1000);
   }
+
+
   return true;
 });

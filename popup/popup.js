@@ -20,8 +20,9 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       );
 
       // server information
-      // const SERVER_URL = "https://cms.icslegal.com";
-      const SERVER_URL    = "http://localhost/cms";
+      const SERVER_URL = "https://cms.icslegal.com";
+      // const SERVER_URL    = "http://localhost/cms";
+      console.log(SERVER_URL);
 
       if (!response || !response.buyerName) {
         nameElement.textContent = "No buyer name found.";
@@ -64,31 +65,57 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 
       // create new matter
       saveClient.addEventListener("click", () => {
+        chrome.tabs.sendMessage(
+          tabs[0].id,
+          { action: "send-email" },
+          async (response) => {
+            console.log(response)
+          }
+        );
+        
         createMatter(SERVER_URL, saveClient, {
-          name: buyerName,
-          phone: buyerPhone,
+          fname: buyerName,
+          lname: '.',
+          mobile: buyerPhone,
           email: buyerEmail,
           service: buyerService,
-          activityLog: activityLog,
+          activity_log: activityLog,
+          advertise: "Bark",
+          sources: "Bark",
+          matter_type: 'Consultation',
           priority: "",
         });
       });
 
       // create new matter with priority
       saveMatterWithPriority.addEventListener("click", () => {
+        chrome.tabs.sendMessage(
+          tabs[0].id,
+          { action: "send-email" },
+          async (response) => {
+            console.log(response)
+          }
+        );
+
         createMatter(SERVER_URL, saveClient, {
-          name: buyerName,
-          phone: buyerPhone,
+          fname: buyerName,
+          lname: '.',
+          mobile: buyerPhone,
           email: buyerEmail,
           service: buyerService,
-          activityLog: activityLog,
+          activity_log: activityLog,
+          advertise: "Bark",
+          sources: "Bark",
+          matter_type: 'Consultation',
           priority: "high",
         });
       });
 
+
+
       try {
         // request on api end points
-        const apiResponse = await fetch(`${SERVER_URL}/bark-api.php`, {
+        const apiResponse = await fetch(`${SERVER_URL}/bark-load.php`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
