@@ -1,235 +1,261 @@
 chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-  chrome.tabs.sendMessage(tabs[0].id, { action: "getBuyerInfo" }, async (response) => {
-    const avatarElement = document.getElementById("clientAvatar");
-    const nameElement = document.getElementById("name");
-    // const phoneElement = document.getElementById("phone"); 
-    // const emailElement = document.getElementById("email");
-    const locationElement = document.getElementById("location");
-    const membersContainer = document.getElementById("members");
-    const mattersContainer = document.getElementById("matters");
-    const matterHeading = document.getElementById("matterHeading");
-    const memberHeading = document.getElementById("memberHeading");
-    const resultSummery = document.getElementById("resultSummery");
-    const saveClient = document.getElementById("saveClient");
-    
+  chrome.tabs.sendMessage(
+    tabs[0].id,
+    { action: "getBuyerInfo" },
+    async (response) => {
+      const avatarElement = document.getElementById("clientAvatar");
+      const nameElement = document.getElementById("name");
+      // const phoneElement = document.getElementById("phone");
+      // const emailElement = document.getElementById("email");
+      const locationElement = document.getElementById("location");
+      const membersContainer = document.getElementById("members");
+      const mattersContainer = document.getElementById("matters");
+      const matterHeading = document.getElementById("matterHeading");
+      const memberHeading = document.getElementById("memberHeading");
+      const resultSummery = document.getElementById("resultSummery");
+      const saveClient = document.getElementById("saveMatter");
+      const buttonGroup = document.querySelectorAll(".button_group");
+      const saveMatterWithPriority = document.getElementById(
+        "saveMatterWithPriority"
+      );
 
-    // server information 
-    // const SERVER_URL =  "https://cms.icslegal.com";
-    const SERVER_URL =  "http://localhost/cms";
+      // server information
+      // const SERVER_URL = "https://cms.icslegal.com";
+      const SERVER_URL    = "http://localhost/cms";
 
+      if (!response || !response.buyerName) {
+        nameElement.textContent = "No buyer name found.";
+        return;
+      }
 
-    if (!response || !response.buyerName) {
-      nameElement.textContent = "No buyer name found.";
-      return;
-    }
+      if (!response || !response.buyerPhone) {
+        phoneElement.textContent = "No buyer phone found.";
+        return;
+      }
 
-    if (!response || !response.buyerPhone) {
-      phoneElement.textContent = "No buyer phone found.";
-      return;
-    }
+      if (!response || !response.buyerEmail) {
+        emailElement.textContent = "No buyer email found.";
+        return;
+      }
 
-    if (!response || !response.buyerEmail) {
-      emailElement.textContent = "No buyer email found.";
-      return;
-    }
+      if (!response || !response.buyerLocation) {
+        locationElement.textContent = "No buyer location found.";
+        return;
+      }
 
-    if(!response || !response.buyerLocation) {
-      locationElement.textContent = "No buyer location found.";
-      return;
-    }
+      // buyer information form website
+      const buyerName = response.buyerName;
+      const buyerPhone = response.buyerPhone.split(" ").join("");
+      const buyerEmail = response.buyerEmail;
+      const buyerLocation = response.buyerLocation;
+      const activityLog = response.activityLog;
+      const buyerService = response.buyerService;
 
-    // buyer information form website
-    const buyerName = response.buyerName;
-    const buyerPhone = response.buyerPhone.split(" ").join("");
-    const buyerEmail = response.buyerEmail;
-    const buyerLocation = response.buyerLocation;
-    const activityLog = response.activityLog;
-    const buyerService = response.buyerService;
+      nameElement.textContent = buyerName;
+      // phoneElement.textContent = buyerPhone;
+      // emailElement.textContent = buyerEmail;
+      locationElement.textContent = buyerEmail;
+      avatarElement.textContent = buyerName.charAt(0).toUpperCase();
 
+      // show save button if email not masked
+      if (!buyerEmail.includes("*")) {
+        buttonGroup[0].style.display = "flex";
+      }
 
-    nameElement.textContent = buyerName;
-    // phoneElement.textContent = buyerPhone;
-    // emailElement.textContent = buyerEmail;
-    locationElement.textContent = buyerEmail;
-    avatarElement.textContent = buyerName.charAt(0).toUpperCase();
-
-
-    // show save button if email not masked
-    if(!buyerEmail.includes("*")){
-      saveClient.style.display = "block";
-    }
-
-    // create new matter
-    saveClient.addEventListener('click', ()=>{
-      createMatter(SERVER_URL, saveClient, {
-        name: buyerName,
-        phone: buyerPhone,
-        email: buyerEmail,
-        service : buyerService,
-        activityLog: activityLog,
-      });
-    })
-    
-
-    try {
-      // request on api end points
-      const apiResponse = await fetch(`${SERVER_URL}/bark-api.php`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: 'check',
+      // create new matter
+      saveClient.addEventListener("click", () => {
+        createMatter(SERVER_URL, saveClient, {
           name: buyerName,
           phone: buyerPhone,
-          email: buyerEmail
-        })
+          email: buyerEmail,
+          service: buyerService,
+          activityLog: activityLog,
+          priority: "",
+        });
       });
 
+      // create new matter with priority
+      saveMatterWithPriority.addEventListener("click", () => {
+        createMatter(SERVER_URL, saveClient, {
+          name: buyerName,
+          phone: buyerPhone,
+          email: buyerEmail,
+          service: buyerService,
+          activityLog: activityLog,
+          priority: "high",
+        });
+      });
 
-      if (!apiResponse.ok) {
-        throw new Error(`HTTP error! status: ${apiResponse.status}`);
-      }
-
-      // response data from api
-      const result = await apiResponse.json();
-      console.log(result);
-    
-
-
-      if(result && result.status == "success"){
-         
-        // change headings
-        result.users.length > 0 && (memberHeading.textContent = "Peoples");
-        result.matters.length > 0 && (matterHeading.textContent = "Matters");
-
-        // load users or members
-        result.users.forEach((user) => {
-          let percentage = getPercentage(user, buyerName, buyerPhone, buyerEmail);
-          membersContainer.insertAdjacentHTML('beforeend', `
-            <div class="member" data-id="${user.id}">
-              <div class="progress ${percentage}">
-                <img class="member_avatar" src="../images/avatar.jpg" alt="matter icon">
-              </div>
-              <div>
-                <h3 class="member_name">${user.fname + " " + user.lname}</h3>
-                <small class="member_email text-secondary">
-                  <img src="../images/icon-email.svg" alt="email icon" class="icon_small icon_email">
-                  ${user.email}
-                </small>&nbsp;
-                <small class="member_email text-secondary">
-                  <img src="../images/icon-phone.svg" alt="email icon" class="icon_small icon_phone">
-                  ${user.mobile || user.phone}
-                </small>
-              </div>
-            </div>
-          `);
-
-          // looks saves with text disabled.
-          if(user.email == buyerEmail){
-            saveClient.textContent = "Saved";
-            saveClient.disabled = true;
-          }
-
-          // change header email
-
+      try {
+        // request on api end points
+        const apiResponse = await fetch(`${SERVER_URL}/bark-api.php`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "check",
+            name: buyerName,
+            phone: buyerPhone,
+            email: buyerEmail,
+          }),
         });
 
-        // load matters
-        result.matters.forEach((matter) => {
-          mattersContainer.insertAdjacentHTML('beforeend', `
-            <div class="matter" data-id="${matter.caseid}" data-client="${matter.fkclientid}" >
-              <img class="matter_icon" src="../images/matter-icon.svg" alt="matter icon">
-                <div class="matter_details">
-                  <h3 class="matter_title">${stripHtml(matter.title) || "Untitled Matter"}</h3>
-                  <small class="matter_desc text-secondary">
-                   ${stripHtml(matter.details) || "This matter has no description available."}
-                  </small>
-                </div>
-              <button title="Update Activity" class="update_activity" id="activityUpdate" data-id="${matter.caseid}">Update</button>
-            </div>
-          `);
-        });
+        if (!apiResponse.ok) {
+          throw new Error(`HTTP error! status: ${apiResponse.status}`);
+        }
 
-        // count and render result
-        let matters = result.matters.length
-        let members = result.matters.length
-
-        // update footer text
-        resultSummery.textContent = `We found ${members} members and ${matters} matters for this leads.`;
-
-        // click listener for matters
-        document.querySelectorAll(".matter").forEach((button) => {
-          button.addEventListener("click", (e) => {
-            const caseId = e.currentTarget.getAttribute("data-id");
-            chrome.tabs.create({ url: `${SERVER_URL}/add_edit_case.php?caseid=${caseId}` });
-          });
-        });
-
-
-      } else {
+        // response data from api
+        const result = await apiResponse.json();
         console.log(result);
-      }
+        
 
+        if (result && result.status == "success") {
+          // change headings
+          result.users.length > 0 && (memberHeading.textContent = "Peoples");
+          result.matters.length > 0 && (matterHeading.textContent = "Matters");
 
+          // load users or members
+          result.users.forEach((user) => {
+            let percentage = getPercentage(
+              user,
+              buyerName,
+              buyerPhone,
+              buyerEmail
+            );
+            membersContainer.insertAdjacentHTML(
+              "beforeend",
+              `<div class="member" data-id="${user.id}">
+                  <div class="progress ${percentage}">
+                    <img class="member_avatar" src="../images/avatar.jpg" alt="matter icon">
+                  </div>
+                  <div>
+                    <h3 class="member_name">${user.fname + " " + user.lname}</h3>
+                    <small class="member_email text-secondary">
+                      <img src="../images/icon-email.svg" alt="email icon" class="icon_small icon_email">
+                      ${user.email}
+                    </small>&nbsp;
+                    <small class="member_email text-secondary">
+                      <img src="../images/icon-phone.svg" alt="email icon" class="icon_small icon_phone">
+                      ${user.mobile || user.phone}
+                    </small>
+                  </div>
+                </div>
+              `
+            );
 
-      // update matter activity
-      const updateActivity = document.querySelectorAll(".update_activity");
-      updateActivity.forEach((button) => {
-        button.addEventListener("click", async(e) => {
-          e.stopPropagation();
-          const caseId = e.currentTarget.dataset.id;
-          console.log(response.activityLog);
+            // looks saves with text disabled.
+            if (user.email == buyerEmail) {
+              saveClient.textContent = "Saved";
+              buttonGroup[0].classList.add("disabled");
+            }
 
-          const apiResponse = await fetch(`${SERVER_URL}/bark_api_store_activity.php`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
+            // change header email
+          });
+
+          // load matters
+          result.matters.forEach((matter) => {
+            mattersContainer.insertAdjacentHTML(
+              "beforeend",
+              `
+              <div class="matter" data-id="${matter.caseid}" data-client="${
+                  matter.fkclientid
+                }" >
+                <img class="matter_icon" src="../images/matter-icon.svg" alt="matter icon">
+                  <div class="matter_details">
+                    <h3 class="matter_title">${
+                      stripHtml(matter.title) || "Untitled Matter"
+                    }</h3>
+                    <small class="matter_desc text-secondary">
+                    ${
+                      stripHtml(matter.details) ||
+                      "This matter has no description available."
+                    }
+                    </small>
+                  </div>
+                  <div class="button_group matter_button_group">
+                    <button class="left_button update_activity" data-priority="normal" data-id="${
+                      matter.caseid
+                    }">
+                      <img class="arrow" src="../images/icon-arrow-down.svg" alt="">
+                      <p>Update</p>
+                    </button>
+                    <button class="right_button update_activity" data-priority="high" data-id="${
+                      matter.caseid
+                    }">
+                      <img class="arrow" src="../images/icon-arrow-down.svg" alt="">
+                      <p>Update With Priority</p>
+                    </button>
+                  </div>
+              </div>
+            `
+            );
+          });
+
+          // count and render result
+          let matters = result.matters.length;
+          let members = result.matters.length;
+
+          // update footer text
+          resultSummery.textContent = `We found ${members} members and ${matters} matters for this leads.`;
+
+          // click listener for matters
+          document.querySelectorAll(".matter").forEach((button) => {
+            button.addEventListener("click", (e) => {
+              const caseId = e.currentTarget.getAttribute("data-id");
+              chrome.tabs.create({
+                url: `${SERVER_URL}/add_edit_case.php?caseid=${caseId}`,
+              });
+            });
+          });
+        } else {
+          console.log(result);
+        }
+
+        // update matter activity
+        const updateActivity = document.querySelectorAll(".update_activity");
+        updateActivity.forEach((button) => {
+          button.addEventListener("click", async (e) => {
+            e.stopPropagation();
+            const priority = e.currentTarget.dataset.priority;
+            const caseId = e.currentTarget.dataset.id;
+
+            // update matter activity
+            updateMatterActivity(SERVER_URL, button, {
               matterId: caseId,
               activityLog: activityLog,
-            })
+              priority: priority,
+            });
           });
-
-          if (!apiResponse.ok) {
-            throw new Error(`HTTP error! status: ${apiResponse.status}`);
-          }
-
-          // response data from api
-          const result = await apiResponse.json();
-
-
-          // see response
-          if (result.status == "success") {
-            e.target.textContent = "Updated";
-            e.target.disabled = true;
-          }
         });
-      })
 
-      // filter matter
-      const memberElements = document.querySelectorAll(".member");
-      memberElements.forEach((member) => {
+        // filter matter
+        const memberElements = document.querySelectorAll(".member");
+        memberElements.forEach((member) => {
+          // hide matter on click
+          member.addEventListener("click", (e) => {
+            // Remove 'selected' from all progress elements first (optional, for single selection)
+            document
+              .querySelectorAll(".progress.selected")
+              .forEach((p) => p.classList.remove("selected"));
 
-        // hide matter on click
-        member.addEventListener("click", (e) => {
-          // Remove 'selected' from all progress elements first (optional, for single selection)
-          document.querySelectorAll(".progress.selected").forEach(p => p.classList.remove("selected"));
-
-
-          const progress = e.currentTarget.querySelector(".progress");
-          if (progress) {progress.classList.add("selected");}
-
-          const memberId = e.currentTarget.getAttribute("data-id");
-          const selectedMatter = document.querySelectorAll('.matter');
-          selectedMatter.forEach((matter) => {
-            if (matter.getAttribute("data-client") === memberId) {
-              matter.classList.remove("hide");
-            } else {
-              matter.classList.add("hide");
+            const progress = e.currentTarget.querySelector(".progress");
+            if (progress) {
+              progress.classList.add("selected");
             }
+
+            const memberId = e.currentTarget.getAttribute("data-id");
+            const selectedMatter = document.querySelectorAll(".matter");
+            selectedMatter.forEach((matter) => {
+              if (matter.getAttribute("data-client") === memberId) {
+                matter.classList.remove("hide");
+              } else {
+                matter.classList.add("hide");
+              }
+            });
           });
         });
-      });
-    } catch (error) {
-      console.log(error);
+      } catch (error) {
+        console.log(error);
+      }
     }
-  });
+  );
 });

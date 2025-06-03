@@ -11,9 +11,8 @@
 html {
   font-size: 62.5%;
 }
-
 body {
-  width: 420px;
+  width: 450px;
   font-size: 1.6rem;
   font-family: "my-custom-font", serif;
 }
@@ -49,6 +48,7 @@ header {
   display: flex;
   padding: 0 2rem;
   justify-content: space-between;
+  position: relative;
 }
 .extension {
   display: flex;
@@ -115,28 +115,7 @@ header {
 .save_area {
   position: relative;
   display: flex;
-  gap: .3rem;
-}
-
-.save_client {
-  background-color: #26848e;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  border: 0;
-  color: white;
-  justify-self: flex-end;
-  transition: 0.3s ease;
-  display: none;
-}
-
-.save_client:hover {
-  background-color: #1f6b7a;
-  cursor: pointer;
-}
-
-.save_client:disabled {
-  background-color: #dddddd;
-  color: #afafaf;
+  gap: 0.3rem;
 }
 
 /* ------------------------------------
@@ -155,6 +134,7 @@ header {
   align-items: center;
   border-radius: 0.5rem;
   transition: 0.1s ease;
+  position: relative;
 }
 .matter:hover,
 .member:hover {
@@ -166,9 +146,9 @@ header {
   opacity: 50%;
 }
 
-.matter_details{
-    flex-grow: 1;
-    max-width: 250px;
+.matter_details {
+  flex-grow: 1;
+  max-width: 260px;
 }
 
 .matter_title {
@@ -186,53 +166,50 @@ header {
 }
 .matter_desc {
   display: -webkit-box;
-  -webkit-line-clamp: 1; 
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.update_activity{
-    background-color: #26848e;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    border: 0;
-    color: white;
-    justify-self: flex-end;
-    transition: 0.3s ease;
+.update_activity {
+  background-color: #26848e;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 0;
+  color: white;
+  justify-self: flex-end;
+  transition: 0.3s ease;
 }
-.update_activity:hover{
-    background-color: #1f6b7a;
-    cursor: pointer;
+.update_activity:hover {
+  background-color: #1f6b7a;
+  cursor: pointer;
 }
-.update_activity:disabled{
+.update_activity:disabled {
   background-color: #dddddd;
   color: #afafaf;
 }
 /* ------------------------------------
     Member Section Start
 ------------------------------------- */
-.progress{
+.progress {
   height: 4rem;
   width: 4rem;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: conic-gradient(
-      #ebebeb 0% 100%,
-      #ebebeb 0% 100%
-  );
-  padding: .5rem;
+  background: conic-gradient(#ebebeb 0% 100%, #ebebeb 0% 100%);
+  padding: 0.5rem;
   position: relative;
-  transition: .1s ease;
+  transition: 0.1s ease;
 }
 
-.progress.selected{
+.progress.selected {
   border: 0.4rem solid #26848e;
 }
 
-.progress::after{
+.progress::after {
   content: "50%";
   height: 100%;
   width: 100%;
@@ -250,17 +227,17 @@ header {
   font-weight: 600;
 }
 
-.match-100::after{
+.match-100::after {
   content: "100%";
 }
-.match-90::after{
+.match-90::after {
   content: "90%";
 }
-.match-75::after{
-  content: "75%";
-}
-.match-50::after{
+.match-75::after {
   content: "50%";
+}
+.match-50::after {
+  content: "25%";
 }
 
 .member_avatar {
@@ -275,11 +252,11 @@ header {
   width: 1.7rem;
   margin-bottom: -0.5rem;
 }
-.member_details{
-    flex-grow: 1;
+.member_details {
+  flex-grow: 1;
 }
-summary{
-    list-style: none;
+summary {
+  list-style: none;
 }
 
 /* ------------------------------------
@@ -292,4 +269,113 @@ footer {
   padding: 1rem 2rem 1.2rem 2rem;
   font-size: 1.3rem;
   color: #58595d;
+}
+
+/* -------------------------------------------- */
+.button_group, .matter_button_group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: absolute;
+  right: 1rem;
+  margin-top: 1rem;
+  padding-left: 1rem;
+  gap: 0.1rem;
+  height: 5rem;
+  display: none;
+}
+.matter_button_group{
+  display: flex;
+  background-color: transparent;
+  top: -0.8rem;
+}
+
+.button_group button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  background-color: #26848e;
+  color: white;
+  transition: width 0.3s, background-color 0.3s ease;
+}
+
+.button_group.disabled button,
+.button_group button:disabled {
+  pointer-events: none;
+  cursor: not-allowed;
+  background-color: #dddddd;
+  color: #afafaf;
+}
+
+.button_group button:hover {
+  background-color: #1f6b7a;
+}
+
+.button_group button p {
+  white-space: nowrap;
+}
+
+.button_group button img {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Left Button */
+.button_group .left_button {
+  border-radius: 0.5rem 0 0 0.5rem;
+}
+
+.button_group .left_button img {
+  display: none;
+  rotate: -90deg;
+}
+
+/* Right Button */
+.button_group .right_button {
+  width: 2rem;
+  border-radius: 0 0.5rem 0.5rem 0;
+  transition: width 0.3s;
+}
+
+.button_group .right_button img {
+  rotate: 90deg;
+}
+
+.button_group .right_button p {
+  display: none;
+}
+
+.button_group .right_button:hover {
+  width: 13rem;
+}
+
+.button_group .right_button:hover img {
+  display: none;
+}
+
+.button_group .right_button:hover p {
+  display: block;
+}
+
+/* Hover effect on left button when right button is hovered */
+.button_group:has(.right_button:hover) .left_button {
+  padding: 0.5rem;
+}
+
+.button_group:has(.right_button:hover) .left_button p {
+  display: none;
+}
+
+.button_group:has(.right_button:hover) .left_button img {
+  display: block;
+}
+
+/* Disabled Right Button */
+.button_group.disabled .right_button {
+  background-color: #dddddd;
+  color: #afafaf;
 }
